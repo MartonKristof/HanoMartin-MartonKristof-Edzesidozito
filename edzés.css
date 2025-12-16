@@ -146,7 +146,7 @@ footer {
     flex: 1;
 }
 
-/*Színválasztó*/
+/*Dark/Light mode*/
 body.light-mode {
     background-color: #04045E; /* sötétkék háttér */
     color: #B9FA3C; /* világos zöld szöveg */
