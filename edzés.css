@@ -1,124 +1,146 @@
-* {
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
+/* Alap body stílus */
 body {
-    background: #ffffff;
     margin: 0;
-    padding: 30px;
+    font-family: 'Arial', sans-serif;
+    background-color: #03182B; /* sötétkék */
+    color: #D8263E; /* piros */
 }
 
-h1 {
-    margin-bottom: 20px;
-}
-
+/* App konténer */
 .app {
-    background: linear-gradient(135deg, #0f172a, #020617);
-    border-radius: 12px;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
-    color: #e5e7eb;
 }
 
-.app-header {
+/* Fejléc */
+.app-header h2 {
+    font-size: 3rem;
     text-align: center;
-    padding: 15px;
-    border-radius: 10px;
-    background: #020617;
-    margin-bottom: 20px;
+    color: #D8263E;
 }
 
+.app-header p {
+    text-align: center;
+    margin-top: 5px;
+    color: #D8263E;
+}
+
+/* Cardok stílusa */
 .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
 }
 
 .card {
-    background: #020617;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    background-color: #03182B; /* sötétkék */
+    border: 1px solid #D8263E;
+    border-radius: 12px;
+    padding: 20px;
+    width: 300px;
 }
 
 .card h3 {
-    margin-top: 0;
-    color: #60a5fa;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #D8263E;
 }
 
-.inputs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.inputs input {
-    width: 100%;
-    padding: 6px;
-    border-radius: 5px;
-    border: none;
-}
-
+/* Timer */
 .timer {
     font-size: 2rem;
     text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    margin: 10px 0;
+    margin: 15px 0;
+    color: #D8263E;
 }
 
-.timer.pink {
-    background: #3f0f2a;
-    color: #ff4d9d;
-}
-
-.buttons {
+/* Inputs stílus */
+.inputs {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 15px;
 }
 
-.btn {
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #020617;
-    font-weight: bold;
+.inputs label {
+    display: block;
+    margin-bottom: 5px;
+    color: #D8263E;
 }
 
-.btn.blue { background: #38bdf8; }
-.btn.orange { background: #fb923c; }
-.btn.red { background: #f87171; }
-
-.colors {
-    display: flex;
-    gap: 8px;
-    margin: 10px 0;
-}
-
-.colors span {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    cursor: pointer;
-}
-
-select {
-    width: 100%;
-    padding: 6px;
-    margin-bottom: 10px;
+.inputs input {
+    width: 100px;
+    padding: 5px;
     border-radius: 5px;
+    border: 1px solid #D8263E;
+    background-color: #03182B;
+    color: #D8263E;
 }
 
+/* Gombok */
+.btn {
+    padding: 10px 20px;
+    margin: 5px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: 1px solid #D8263E;
+    cursor: pointer;
+    color: #D8263E;
+    background-color: #03182B;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #D8263E;
+    color: #03182B;
+}
+
+/* Footer */
 footer {
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid #1e293b;
+    text-align: center;
+    margin-top: 40px;
+    color: #D8263E;
 }
 
-h2{
-    color: #357D89;
-    text-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px white;;;
+/* Színválasztó card */
+.card .colors {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0 15px 0;
+}
+
+.card .colors span {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    border: 2px solid #D8263E;
+    transition: transform 0.2s;
+}
+
+.card .colors span:hover {
+    transform: scale(1.2);
+}
+
+/* Select stílus */
+.card select {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #D8263E;
+    background-color: #03182B;
+    color: #D8263E;
+}
+
+/* Színváltoztató gombok a cardon belül */
+.card .buttons {
+    display: flex;
+    justify-content: center;
+}
+.card .buttons .btn {
+    flex: 1;
 }

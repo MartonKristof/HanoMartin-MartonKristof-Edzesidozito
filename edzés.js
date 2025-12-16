@@ -1,18 +1,21 @@
 /* =========================
    VISSZASZÁMLÁLÓ IDŐZÍTŐ
 ========================= */
+/* =========================
+   VISSZASZÁMLÁLÓ IDŐZÍTŐ – 1. FELADAT
+========================= */
 
 let countdownInterval = null;
 
-// a HTML első card-jából konkrét inputokat választunk
+// A HTML első card-jából választjuk ki az elemeket
 const countdownCard = document.querySelector('.cards .card:nth-of-type(1)');
 const countdownTimer = countdownCard.querySelector('.timer.pink');
 const countdownInputs = countdownCard.querySelectorAll('.inputs input');
 const countdownMinutesInput = countdownInputs[0];
 const countdownSecondsInput = countdownInputs[1];
-
-// gombok
 const countdownButtons = countdownCard.querySelectorAll('.buttons button');
+
+// Gombok eseménykezelői
 countdownButtons[0].addEventListener('click', startCountdown);
 countdownButtons[1].addEventListener('click', pauseCountdown);
 countdownButtons[2].addEventListener('click', resetCountdown);
@@ -33,7 +36,7 @@ function startCountdown() {
 
         if (totalSeconds <= 0) {
             clearInterval(countdownInterval);
-            alert("Visszaszámlálás befejezve!");
+            playCountdownBeep(); // hangjelzés függvényből
         }
 
         totalSeconds--;
@@ -46,10 +49,27 @@ function pauseCountdown() {
 
 function resetCountdown() {
     clearInterval(countdownInterval);
-    countdownTimer.textContent = "00:00";
+    const m = parseInt(countdownMinutesInput.value) || 0;
+    const s = parseInt(countdownSecondsInput.value) || 0;
+    countdownTimer.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
+// Függvény alapú beep hang a Web Audio API segítségével
+function playCountdownBeep() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
 
+    oscillator.type = 'sine'; // hangforma
+    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // frekvencia 1000 Hz
+    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // hangerő
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.2); // 0.2 mp hosszú hang
+}
 /* =========================
    EDZÉS IDŐZÍTŐ
 ========================= */
@@ -62,8 +82,7 @@ let workoutSteps = [
 let currentStepIndex = 0;
 let timeLeft = workoutSteps[0].duration;
 
-// Második card
-const workoutCard = document.querySelector('.cards .card:nth-child(2)');
+const workoutCard = document.querySelector('.cards .card:nth-of-type(2)');
 const workoutTimer = workoutCard.querySelector('.timer.pink');
 const workoutButtons = workoutCard.querySelectorAll('.buttons button');
 
@@ -97,7 +116,9 @@ function pauseWorkout() {
 
 function resetWorkout() {
     clearInterval(workoutInterval);
-    workoutTimer.textContent = "Gyakorlat: 30s";
+    currentStepIndex = 0;
+    timeLeft = workoutSteps[0].duration;
+    updateWorkoutDisplay();
 }
 
 
@@ -107,56 +128,26 @@ function resetWorkout() {
 
 let colorInterval = null;
 let currentColorIndex = 0;
-const colorCard = document.querySelector('.cards .card:nth-child(3)');
+
+const colorCard = document.querySelector('.cards .card:nth-of-type(3)');
 const colorButtons = colorCard.querySelectorAll('.buttons button');
+const colorSelect = colorCard.querySelector('select');
 const colors = ['#ff4d6d', '#4d96ff', '#4dff88', '#ffd24d', '#9d4dff'];
 
-// gombok eseménykezelő
 colorButtons[0].addEventListener('click', startColorChange);
 colorButtons[1].addEventListener('click', stopColorChange);
 
 function startColorChange() {
     clearInterval(colorInterval);
+    // select alapján állítjuk az időt
+    let intervalTime = parseInt(colorSelect.value) * 1000 || 3000;
+
     colorInterval = setInterval(() => {
         document.body.style.backgroundColor = colors[currentColorIndex];
         currentColorIndex = (currentColorIndex + 1) % colors.length;
-    }, 3000);
+    }, intervalTime);
 }
 
 function stopColorChange() {
     clearInterval(colorInterval);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
