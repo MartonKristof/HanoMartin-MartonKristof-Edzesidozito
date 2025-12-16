@@ -54,22 +54,27 @@ function resetCountdown() {
     countdownTimer.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
-// Függvény alapú beep hang a Web Audio API segítségével
 function playCountdownBeep() {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
 
-    oscillator.type = 'sine'; // hangforma
-    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // frekvencia 1000 Hz
-    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // hangerő
+    for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
 
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.2); // 0.2 mp hosszú hang
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        }, i * 300);
+    }
 }
+
 /* =========================
    EDZÉS IDŐZÍTŐ
 ========================= */
