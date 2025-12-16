@@ -145,3 +145,45 @@ footer {
 .card .buttons .btn {
     flex: 1;
 }
+
+/*Színválasztó*/
+body.light-mode {
+    background-color: #04045E; /* sötétkék háttér */
+    color: #B9FA3C; /* világos zöld szöveg */
+    transition: background-color 1s ease, color 1s ease;
+}
+
+body.light-mode .card {
+    background-color: #04045E;
+    border: 1px solid #B9FA3C;
+}
+
+body.light-mode .card h3,
+body.light-mode .app-header h2,
+body.light-mode .app-header p,
+body.light-mode .inputs label,
+body.light-mode .btn,
+body.light-mode footer {
+    color: #B9FA3C;
+}
+
+body.light-mode .inputs input,
+body.light-mode .card select,
+body.light-mode .btn {
+    background-color: #04045E;
+    color: #B9FA3C;
+    border: 1px solid #B9FA3C;
+}
+
+body.light-mode .btn:hover {
+    background-color: #B9FA3C;
+    color: #04045E;
+}
+
+body.light-mode .colors span {
+    border: 2px solid #B9FA3C;
+}
+
+body.light-mode .timer {
+    color: #B9FA3C; /* világos zöld a számoknak */
+}

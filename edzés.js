@@ -7,6 +7,16 @@ const lablecAllapot = document.querySelector('footer p'); // A lábléc szöveg�
 const frissitLablecAllapot = () => lablecAllapot.textContent = (visszaszamlaloIdozito || edzesIdozito || szinIdozito) ? "Van aktív időzítő" : "Nincs aktív időzítő";
 
 /* =========================
+   OLDAL MÓD VÁLTÁS
+========================= */
+const modGomb = document.getElementById('modValtas');
+
+modGomb.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+});
+
+
+/* =========================
    VISSZASZÁMLÁLÓ IDŐZÍTŐ
 ========================= */
 let visszaszamlaloIdozito = null; // Interval ID
