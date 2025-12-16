@@ -1,207 +1,183 @@
 /* =========================
-   FOOTER STATUS
+   LÁBLÉC ÁLLAPOT
 ========================= */
-const footerStatus = document.querySelector('footer p');
-function updateFooterStatus() {
-    if (countdownInterval || workoutInterval || colorInterval) {
-        footerStatus.textContent = "Van aktív időzítő";
-    } else {
-        footerStatus.textContent = "Nincs aktív időzítő";
-    }
-}
+const lablecAllapot = document.querySelector('footer p'); // A lábléc szövegének kijelölése
+
+// Frissíti a lábléc állapotát attól függően, hogy van-e aktív időzítő
+const frissitLablecAllapot = () => lablecAllapot.textContent = (visszaszamlaloIdozito || edzesIdozito || szinIdozito) ? "Van aktív időzítő" : "Nincs aktív időzítő";
 
 /* =========================
    VISSZASZÁMLÁLÓ IDŐZÍTŐ
 ========================= */
-let countdownInterval = null;
-let countdownTotalSeconds = 0;
+let visszaszamlaloIdozito = null; // Interval ID
+let osszesMasodperc = 0; // Összes visszaszámlálandó másodperc
 
-const countdownCard = document.querySelector('.cards .card:nth-of-type(1)');
-const countdownTimer = countdownCard.querySelector('.timer');
-const countdownInputs = countdownCard.querySelectorAll('.inputs input');
-const [minutesInput, secondsInput] = countdownInputs;
-const countdownButtons = countdownCard.querySelectorAll('.buttons button');
-const countdownStatus = countdownCard.querySelector('small');
+// Visszaszámláló elemek kijelölése
+const visszaszamlaloKartya = document.querySelector('.cards .card:nth-of-type(1)'),
+      visszaszamlaloKijelzo = visszaszamlaloKartya.querySelector('.timer'),
+      [percInput, masodpercInput] = visszaszamlaloKartya.querySelectorAll('.inputs input'),
+      [inditGomb, szunetGomb, resetGomb] = visszaszamlaloKartya.querySelectorAll('.buttons button'),
+      visszaszamlaloStatusz = visszaszamlaloKartya.querySelector('small');
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioKontextus = new (window.AudioContext || window.webkitAudioContext)(); // Hang lejátszásához
 
-countdownButtons[0].addEventListener('click', startCountdown);
-countdownButtons[1].addEventListener('click', pauseCountdown);
-countdownButtons[2].addEventListener('click', resetCountdown);
+inditGomb.addEventListener('click', inditVisszaszamlalo);
+szunetGomb.addEventListener('click', szunetVisszaszamlalo);
+resetGomb.addEventListener('click', resetVisszaszamlalo);
 
-function startCountdown() {
-    if (countdownInterval) return;
+function inditVisszaszamlalo() {
+    if (visszaszamlaloIdozito) return; // Ha már fut az időzítő, ne csináljon semmit
 
-    let minutes = parseInt(minutesInput.value) || 0;
-    let seconds = parseInt(secondsInput.value) || 0;
-    countdownTotalSeconds = minutes * 60 + seconds;
-    if (countdownTotalSeconds <= 0) return;
+    osszesMasodperc = (parseInt(percInput.value) || 0) * 60 + (parseInt(masodpercInput.value) || 0); // Beállítja a teljes másodpercet
+    if (osszesMasodperc <= 0) return;
 
-    countdownStatus.textContent = "Visszaszámlálás folyamatban...";
-    countdownInterval = setInterval(() => {
-        const m = Math.floor(countdownTotalSeconds / 60);
-        const s = countdownTotalSeconds % 60;
-        countdownTimer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    visszaszamlaloStatusz.textContent = "Visszaszámlálás folyamatban...";
 
-        countdownTotalSeconds--;
-        if (countdownTotalSeconds < 0) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-            countdownStatus.textContent = "Idő lejárt!";
-            playCountdownBeep();
+    visszaszamlaloIdozito = setInterval(() => {
+        const p = Math.floor(osszesMasodperc / 60); // Percek számítása
+        const m = osszesMasodperc % 60; // Másodpercek számítása
+        visszaszamlaloKijelzo.textContent = `${String(p).padStart(2,'0')}:${String(m).padStart(2,'0')}`; // Kijelző frissítése
+
+        if (--osszesMasodperc < 0) { // Ha lejárt
+            clearInterval(visszaszamlaloIdozito);
+            visszaszamlaloIdozito = null;
+            visszaszamlaloStatusz.textContent = "Idő lejárt!";
+            lejartHang(); // Hangjelzés
         }
-        updateFooterStatus();
+        frissitLablecAllapot();
     }, 1000);
 
-    updateFooterStatus();
+    frissitLablecAllapot();
 }
 
-function pauseCountdown() {
-    if (!countdownInterval) return;
-    clearInterval(countdownInterval);
-    countdownInterval = null;
-    countdownStatus.textContent = "Visszaszámlálás szüneteltetve";
-    updateFooterStatus();
+function szunetVisszaszamlalo() {
+    if (!visszaszamlaloIdozito) return;
+    clearInterval(visszaszamlaloIdozito); // Interval leállítása
+    visszaszamlaloIdozito = null;
+    visszaszamlaloStatusz.textContent = "Visszaszámlálás szüneteltetve";
+    frissitLablecAllapot();
 }
 
-function resetCountdown() {
-    clearInterval(countdownInterval);
-    countdownInterval = null;
-    countdownTotalSeconds = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
-    const m = Math.floor(countdownTotalSeconds / 60);
-    const s = countdownTotalSeconds % 60;
-    countdownTimer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    countdownStatus.textContent = "Készen áll a visszaszámlálásra";
-    updateFooterStatus();
+function resetVisszaszamlalo() {
+    clearInterval(visszaszamlaloIdozito);
+    visszaszamlaloIdozito = null;
+    inditVisszaszamlalo(); // Újrakezdi a visszaszámlálót az aktuális input értékekkel
+    visszaszamlaloStatusz.textContent = "Készen áll a visszaszámlálásra";
 }
 
-function playCountdownBeep() {
-    for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
-        }, i * 300);
-    }
+function lejartHang() {
+    // Többször megszólaltatja a hangot rövid időközönként
+    for (let i = 0; i < 5; i++) setTimeout(() => {
+        const o = audioKontextus.createOscillator(); // Hanghullám generátor
+        const g = audioKontextus.createGain(); // Hang erősítő
+        o.type = 'sine';
+        o.frequency.setValueAtTime(1000, audioKontextus.currentTime);
+        g.gain.setValueAtTime(0.2, audioKontextus.currentTime);
+        o.connect(g);
+        g.connect(audioKontextus.destination);
+        o.start();
+        o.stop(audioKontextus.currentTime + 0.2);
+    }, i * 300);
 }
 
 /* =========================
    EDZÉS IDŐZÍTŐ
 ========================= */
-let workoutInterval = null;
-let currentStepIndex = 0;
-let workoutTimeLeft = 30;
+let edzesIdozito = null, aktualisLepesIndex = 0, hatralevoIdo;
+const edzesKartya = document.querySelector('.cards .card:nth-of-type(2)'),
+      edzesKijelzo = edzesKartya.querySelector('.timer'),
+      edzesStatusz = edzesKartya.querySelector('.status'),
+      edzesGombok = edzesKartya.querySelectorAll('.buttons button'),
+      edzesKisSzoveg = edzesKartya.querySelector('small');
 
-const workoutCard = document.querySelector('.cards .card:nth-of-type(2)');
-const workoutTimer = workoutCard.querySelector('.timer');
-const workoutStatus = workoutCard.querySelector('.status');
-const workoutButtons = workoutCard.querySelectorAll('.buttons button');
-const workoutSmall = workoutCard.querySelector('small');
+const edzesLepesek = [{nev:"Gyakorlat",ido:30},{nev:"Pihenő",ido:10}];
+hatralevoIdo = edzesLepesek[0].ido; // Kezdő lépés ideje
 
-let workoutSteps = [
-    { name: "Gyakorlat", duration: 30 },
-    { name: "Pihenő", duration: 10 }
-];
+edzesGombok[0].addEventListener('click', inditEdzes);
+edzesGombok[1].addEventListener('click', szunetEdzes);
+edzesGombok[2].addEventListener('click', resetEdzes);
 
-workoutButtons[0].addEventListener('click', startWorkout);
-workoutButtons[1].addEventListener('click', pauseWorkout);
-workoutButtons[2].addEventListener('click', resetWorkout);
+function inditEdzes() {
+    if (edzesIdozito) return; // Ha fut már az edzés, ne indítsa újra
 
-function startWorkout() {
-    if (workoutInterval) return;
+    edzesStatusz.textContent = edzesLepesek[aktualisLepesIndex].nev; // Jelenlegi lépés
+    edzesKisSzoveg.textContent = `Következő: ${edzesLepesek[(aktualisLepesIndex+1)%edzesLepesek.length].ido} másodperc ${edzesLepesek[(aktualisLepesIndex+1)%edzesLepesek.length].nev.toLowerCase()}`; // Következő lépés
 
-    workoutStatus.textContent = workoutSteps[currentStepIndex].name;
-    workoutSmall.textContent = `Következő: ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].duration} másodperc ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].name.toLowerCase()}`;
-
-    workoutInterval = setInterval(() => {
-        workoutTimeLeft--;
-        if (workoutTimeLeft <= 0) {
-            currentStepIndex = (currentStepIndex + 1) % workoutSteps.length;
-            workoutTimeLeft = workoutSteps[currentStepIndex].duration;
-            workoutStatus.textContent = workoutSteps[currentStepIndex].name;
-            workoutSmall.textContent = `Következő: ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].duration} másodperc ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].name.toLowerCase()}`;
+    edzesIdozito = setInterval(() => {
+        if (--hatralevoIdo <= 0) { // Ha lejárt az aktuális lépés
+            aktualisLepesIndex = (aktualisLepesIndex + 1) % edzesLepesek.length;
+            hatralevoIdo = edzesLepesek[aktualisLepesIndex].ido;
+            edzesStatusz.textContent = edzesLepesek[aktualisLepesIndex].nev;
         }
-        workoutTimer.textContent = String(workoutTimeLeft).padStart(2, '0');
-        updateFooterStatus();
-    }, 1000);
+        edzesKijelzo.textContent = String(hatralevoIdo).padStart(2,'0'); // Kijelző frissítése
+        frissitLablecAllapot();
+    },1000);
 
-    updateFooterStatus();
+    frissitLablecAllapot();
 }
 
-function pauseWorkout() {
-    if (!workoutInterval) return;
-    clearInterval(workoutInterval);
-    workoutInterval = null;
-    workoutStatus.textContent = workoutSteps[currentStepIndex].name + " (szünet)";
-    updateFooterStatus();
+function szunetEdzes() {
+    if (!edzesIdozito) return;
+    clearInterval(edzesIdozito);
+    edzesIdozito = null;
+    edzesStatusz.textContent = `${edzesLepesek[aktualisLepesIndex].nev} (szünet)`;
+    frissitLablecAllapot();
 }
 
-function resetWorkout() {
-    clearInterval(workoutInterval);
-    workoutInterval = null;
-    currentStepIndex = 0;
-    workoutTimeLeft = workoutSteps[0].duration;
-    workoutTimer.textContent = String(workoutTimeLeft).padStart(2, '0');
-    workoutStatus.textContent = "Felkészülés...";
-    workoutSmall.textContent = `Következő: ${workoutSteps[1].duration} másodperc pihenő`;
-    updateFooterStatus();
+function resetEdzes() {
+    clearInterval(edzesIdozito);
+    edzesIdozito = null;
+    aktualisLepesIndex = 0;
+    hatralevoIdo = edzesLepesek[0].ido;
+    edzesKijelzo.textContent = String(hatralevoIdo).padStart(2,'0');
+    edzesStatusz.textContent = "Felkészülés...";
+    edzesKisSzoveg.textContent = `Következő: ${edzesLepesek[1].ido} másodperc pihenő`;
+    frissitLablecAllapot();
 }
 
 /* =========================
    SZÍNVÁLTÓ HÁTTÉR
 ========================= */
-let colorInterval = null;
-let currentColorIndex = 0;
+let szinIdozito = null, aktualisSzinIndex = 0;
+const szinKartya = document.querySelector('.cards .card:nth-of-type(3)'),
+      szinSpank = szinKartya.querySelectorAll('.colors span'),
+      szinSelect = szinKartya.querySelector('select'),
+      szinGombok = szinKartya.querySelectorAll('.buttons button'),
+      szinKisSzoveg = szinKartya.querySelector('small');
 
-const colorCard = document.querySelector('.cards .card:nth-of-type(3)');
-const colorSpans = colorCard.querySelectorAll('.colors span');
-const colorSelect = colorCard.querySelector('select');
-const colorButtons = colorCard.querySelectorAll('.buttons button');
-const colorSmall = colorCard.querySelector('small');
+let szinLista = Array.from(szinSpank).map(span => getComputedStyle(span).backgroundColor); // Színek listája
 
-// Színek listája
-let colorArray = Array.from(colorSpans).map(span => span.style.backgroundColor);
-
-// Manuális színválasztás
-colorSpans.forEach((span, index) => {
+szinSpank.forEach((span, index) => {
     span.addEventListener('click', () => {
-        stopColorChange(); // megállítja az aktuális váltást
-        currentColorIndex = index; // a kiválasztott színtől indul az automatikus váltás
-        document.body.style.backgroundColor = colorArray[currentColorIndex];
-        colorSmall.textContent = `Kiválasztott szín: ${colorArray[currentColorIndex]}`;
-        updateFooterStatus();
+        leallitSzinValtas(); // Megállítja az automatikus színváltást
+        aktualisSzinIndex = index;
+        document.body.style.backgroundColor = szinLista[aktualisSzinIndex];
+        szinKisSzoveg.textContent = `Kiválasztott szín: ${szinLista[aktualisSzinIndex]}`;
+        frissitLablecAllapot();
     });
 });
 
-// Automatikus színváltás indítása
-colorButtons[0].addEventListener('click', startColorChange);
-colorButtons[1].addEventListener('click', stopColorChange);
+szinGombok[0].addEventListener('click', inditSzinValtas);
+szinGombok[1].addEventListener('click', leallitSzinValtas);
 
-function startColorChange() {
-    if (colorInterval || colorArray.length === 0) return;
+function inditSzinValtas() {
+    if (szinIdozito || szinLista.length === 0) return; // Ha már fut, ne indítsa újra
 
-    let intervalTime = [1000, 2000, 5000][colorSelect.selectedIndex] || 1000;
-    colorSmall.textContent = "Színváltás folyamatban...";
+    let idokoz = [1000,2000,5000][szinSelect.selectedIndex] || 1000; // Interval idő beállítása
+    szinKisSzoveg.textContent = "Színváltás folyamatban...";
 
-    colorInterval = setInterval(() => {
-        document.body.style.backgroundColor = colorArray[currentColorIndex];
-        currentColorIndex = (currentColorIndex + 1) % colorArray.length;
-        updateFooterStatus();
-    }, intervalTime);
+    szinIdozito = setInterval(() => {
+        document.body.style.backgroundColor = szinLista[aktualisSzinIndex];
+        aktualisSzinIndex = (aktualisSzinIndex + 1) % szinLista.length;
+        frissitLablecAllapot();
+    }, idokoz);
 
-    updateFooterStatus();
+    frissitLablecAllapot();
 }
 
-// Automatikus színváltás leállítása
-function stopColorChange() {
-    clearInterval(colorInterval);
-    colorInterval = null;
-    colorSmall.textContent = "Színváltás megállítva";
-    updateFooterStatus();
+function leallitSzinValtas() {
+    clearInterval(szinIdozito);
+    szinIdozito = null;
+    szinKisSzoveg.textContent = "Színváltás megállítva";
+    frissitLablecAllapot();
 }
