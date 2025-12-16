@@ -1,76 +1,92 @@
 /* =========================
+   FOOTER STATUS
+========================= */
+const footerStatus = document.querySelector('footer p');
+function updateFooterStatus() {
+    if (countdownInterval || workoutInterval || colorInterval) {
+        footerStatus.textContent = "Van aktív időzítő";
+    } else {
+        footerStatus.textContent = "Nincs aktív időzítő";
+    }
+}
+
+/* =========================
    VISSZASZÁMLÁLÓ IDŐZÍTŐ
 ========================= */
-/* =========================
-   VISSZASZÁMLÁLÓ IDŐZÍTŐ – 1. FELADAT
-========================= */
-
 let countdownInterval = null;
+let countdownTotalSeconds = 0;
 
-// A HTML első card-jából választjuk ki az elemeket
 const countdownCard = document.querySelector('.cards .card:nth-of-type(1)');
-const countdownTimer = countdownCard.querySelector('.timer.pink');
+const countdownTimer = countdownCard.querySelector('.timer');
 const countdownInputs = countdownCard.querySelectorAll('.inputs input');
-const countdownMinutesInput = countdownInputs[0];
-const countdownSecondsInput = countdownInputs[1];
+const [minutesInput, secondsInput] = countdownInputs;
 const countdownButtons = countdownCard.querySelectorAll('.buttons button');
+const countdownStatus = countdownCard.querySelector('small');
 
-// Gombok eseménykezelői
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
 countdownButtons[0].addEventListener('click', startCountdown);
 countdownButtons[1].addEventListener('click', pauseCountdown);
 countdownButtons[2].addEventListener('click', resetCountdown);
 
 function startCountdown() {
-    let minutes = parseInt(countdownMinutesInput.value) || 0;
-    let seconds = parseInt(countdownSecondsInput.value) || 0;
-    let totalSeconds = minutes * 60 + seconds;
+    if (countdownInterval) return;
 
-    if (totalSeconds <= 0) return;
+    let minutes = parseInt(minutesInput.value) || 0;
+    let seconds = parseInt(secondsInput.value) || 0;
+    countdownTotalSeconds = minutes * 60 + seconds;
+    if (countdownTotalSeconds <= 0) return;
 
-    clearInterval(countdownInterval);
-
+    countdownStatus.textContent = "Visszaszámlálás folyamatban...";
     countdownInterval = setInterval(() => {
-        const m = Math.floor(totalSeconds / 60);
-        const s = totalSeconds % 60;
-        countdownTimer.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const m = Math.floor(countdownTotalSeconds / 60);
+        const s = countdownTotalSeconds % 60;
+        countdownTimer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-        if (totalSeconds <= 0) {
+        countdownTotalSeconds--;
+        if (countdownTotalSeconds < 0) {
             clearInterval(countdownInterval);
-            playCountdownBeep(); // hangjelzés függvényből
+            countdownInterval = null;
+            countdownStatus.textContent = "Idő lejárt!";
+            playCountdownBeep();
         }
-
-        totalSeconds--;
+        updateFooterStatus();
     }, 1000);
+
+    updateFooterStatus();
 }
 
 function pauseCountdown() {
+    if (!countdownInterval) return;
     clearInterval(countdownInterval);
+    countdownInterval = null;
+    countdownStatus.textContent = "Visszaszámlálás szüneteltetve";
+    updateFooterStatus();
 }
 
 function resetCountdown() {
     clearInterval(countdownInterval);
-    const m = parseInt(countdownMinutesInput.value) || 0;
-    const s = parseInt(countdownSecondsInput.value) || 0;
-    countdownTimer.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    countdownInterval = null;
+    countdownTotalSeconds = (parseInt(minutesInput.value) || 0) * 60 + (parseInt(secondsInput.value) || 0);
+    const m = Math.floor(countdownTotalSeconds / 60);
+    const s = countdownTotalSeconds % 60;
+    countdownTimer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    countdownStatus.textContent = "Készen áll a visszaszámlálásra";
+    updateFooterStatus();
 }
 
 function playCountdownBeep() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
     for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.2);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
         }, i * 300);
     }
 }
@@ -78,81 +94,114 @@ function playCountdownBeep() {
 /* =========================
    EDZÉS IDŐZÍTŐ
 ========================= */
-
 let workoutInterval = null;
+let currentStepIndex = 0;
+let workoutTimeLeft = 30;
+
+const workoutCard = document.querySelector('.cards .card:nth-of-type(2)');
+const workoutTimer = workoutCard.querySelector('.timer');
+const workoutStatus = workoutCard.querySelector('.status');
+const workoutButtons = workoutCard.querySelectorAll('.buttons button');
+const workoutSmall = workoutCard.querySelector('small');
+
 let workoutSteps = [
     { name: "Gyakorlat", duration: 30 },
     { name: "Pihenő", duration: 10 }
 ];
-let currentStepIndex = 0;
-let timeLeft = workoutSteps[0].duration;
-
-const workoutCard = document.querySelector('.cards .card:nth-of-type(2)');
-const workoutTimer = workoutCard.querySelector('.timer.pink');
-const workoutButtons = workoutCard.querySelectorAll('.buttons button');
 
 workoutButtons[0].addEventListener('click', startWorkout);
 workoutButtons[1].addEventListener('click', pauseWorkout);
 workoutButtons[2].addEventListener('click', resetWorkout);
 
 function startWorkout() {
-    clearInterval(workoutInterval);
-    currentStepIndex = 0;
-    timeLeft = workoutSteps[currentStepIndex].duration;
-    updateWorkoutDisplay();
+    if (workoutInterval) return;
+
+    workoutStatus.textContent = workoutSteps[currentStepIndex].name;
+    workoutSmall.textContent = `Következő: ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].duration} másodperc ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].name.toLowerCase()}`;
 
     workoutInterval = setInterval(() => {
-        timeLeft--;
-        if (timeLeft <= 0) {
+        workoutTimeLeft--;
+        if (workoutTimeLeft <= 0) {
             currentStepIndex = (currentStepIndex + 1) % workoutSteps.length;
-            timeLeft = workoutSteps[currentStepIndex].duration;
+            workoutTimeLeft = workoutSteps[currentStepIndex].duration;
+            workoutStatus.textContent = workoutSteps[currentStepIndex].name;
+            workoutSmall.textContent = `Következő: ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].duration} másodperc ${workoutSteps[(currentStepIndex + 1) % workoutSteps.length].name.toLowerCase()}`;
         }
-        updateWorkoutDisplay();
+        workoutTimer.textContent = String(workoutTimeLeft).padStart(2, '0');
+        updateFooterStatus();
     }, 1000);
-}
 
-function updateWorkoutDisplay() {
-    workoutTimer.textContent = `${workoutSteps[currentStepIndex].name}: ${timeLeft}s`;
+    updateFooterStatus();
 }
 
 function pauseWorkout() {
+    if (!workoutInterval) return;
     clearInterval(workoutInterval);
+    workoutInterval = null;
+    workoutStatus.textContent = workoutSteps[currentStepIndex].name + " (szünet)";
+    updateFooterStatus();
 }
 
 function resetWorkout() {
     clearInterval(workoutInterval);
+    workoutInterval = null;
     currentStepIndex = 0;
-    timeLeft = workoutSteps[0].duration;
-    updateWorkoutDisplay();
+    workoutTimeLeft = workoutSteps[0].duration;
+    workoutTimer.textContent = String(workoutTimeLeft).padStart(2, '0');
+    workoutStatus.textContent = "Felkészülés...";
+    workoutSmall.textContent = `Következő: ${workoutSteps[1].duration} másodperc pihenő`;
+    updateFooterStatus();
 }
-
 
 /* =========================
    SZÍNVÁLTÓ HÁTTÉR
 ========================= */
-
 let colorInterval = null;
 let currentColorIndex = 0;
 
 const colorCard = document.querySelector('.cards .card:nth-of-type(3)');
-const colorButtons = colorCard.querySelectorAll('.buttons button');
+const colorSpans = colorCard.querySelectorAll('.colors span');
 const colorSelect = colorCard.querySelector('select');
-const colors = ['#ff4d6d', '#4d96ff', '#4dff88', '#ffd24d', '#9d4dff'];
+const colorButtons = colorCard.querySelectorAll('.buttons button');
+const colorSmall = colorCard.querySelector('small');
 
+// Színek listája
+let colorArray = Array.from(colorSpans).map(span => span.style.backgroundColor);
+
+// Manuális színválasztás
+colorSpans.forEach((span, index) => {
+    span.addEventListener('click', () => {
+        stopColorChange(); // megállítja az aktuális váltást
+        currentColorIndex = index; // a kiválasztott színtől indul az automatikus váltás
+        document.body.style.backgroundColor = colorArray[currentColorIndex];
+        colorSmall.textContent = `Kiválasztott szín: ${colorArray[currentColorIndex]}`;
+        updateFooterStatus();
+    });
+});
+
+// Automatikus színváltás indítása
 colorButtons[0].addEventListener('click', startColorChange);
 colorButtons[1].addEventListener('click', stopColorChange);
 
 function startColorChange() {
-    clearInterval(colorInterval);
-    // select alapján állítjuk az időt
-    let intervalTime = parseInt(colorSelect.value) * 1000 || 3000;
+    if (colorInterval || colorArray.length === 0) return;
+
+    let intervalTime = [1000, 2000, 5000][colorSelect.selectedIndex] || 1000;
+    colorSmall.textContent = "Színváltás folyamatban...";
 
     colorInterval = setInterval(() => {
-        document.body.style.backgroundColor = colors[currentColorIndex];
-        currentColorIndex = (currentColorIndex + 1) % colors.length;
+        document.body.style.backgroundColor = colorArray[currentColorIndex];
+        currentColorIndex = (currentColorIndex + 1) % colorArray.length;
+        updateFooterStatus();
     }, intervalTime);
+
+    updateFooterStatus();
 }
 
+// Automatikus színváltás leállítása
 function stopColorChange() {
     clearInterval(colorInterval);
+    colorInterval = null;
+    colorSmall.textContent = "Színváltás megállítva";
+    updateFooterStatus();
 }
