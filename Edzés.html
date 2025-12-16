@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Digitális Edzőóra</title>
+    <link rel="stylesheet" href="edzés.css">
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <h2>Digitális Edzőóra</h2>
+        <p>setInterval() és clearInterval() gyakorlása – Nincs API használat</p>
+    </header>
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>Visszaszámláló időzítő</h3>
+
+            <div class="inputs">
+                <div>
+                    <label>Percek</label>
+                    <input type="number" value="1">
+                </div>
+                <div>
+                    <label>Másodpercek</label>
+                    <input type="number" value="30">
+                </div>
+            </div>
+
+            <div class="timer pink">01:30</div>
+
+            <div class="buttons">
+                <button class="btn blue">Indítás</button>
+                <button class="btn orange">Szünet</button>
+                <button class="btn red">Alaphelyzet</button>
+            </div>
+
+            <small>Készen áll a visszaszámlálásra</small>
+        </div>
+
+        <div class="card">
+            <h3>Edzés időzítő</h3>
+
+            <p class="status">Felkészülés...</p>
+            <small>Következő: 10 másodperc pihenő</small>
+
+            <div class="timer pink">00:30</div>
+
+            <div class="buttons">
+                <button class="btn blue">Edzés indítása</button>
+                <button class="btn orange">Szünet</button>
+                <button class="btn red">Újrakezdés</button>
+            </div>
+
+            <small>Válassz egy edzést és indítsd el</small>
+        </div>
+
+ 
+        <div class="card">
+            <h3>Színváltoztató háttér</h3>
+            <p>Válaszd ki a színeket és az időközt</p>
+
+            <div class="colors">
+                <span style="background:#ff4d6d"></span>
+                <span style="background:#4d96ff"></span>
+                <span style="background:#4dff88"></span>
+                <span style="background:#ffd24d"></span>
+                <span style="background:#9d4dff"></span>
+            </div>
+
+            <select>
+                <option>1 másodperc</option>
+                <option>2 másodperc</option>
+                <option>5 másodperc</option>
+            </select>
+
+            <div class="buttons">
+                <button class="btn blue">Színváltás indítása</button>
+                <button class="btn orange">Színváltás megállítása</button>
+            </div>
+
+            <small>Színváltás megállítva</small>
+        </div>
+
+    </section>
+
+    <footer>
+        <h4>Aktív setInterval() függvények</h4>
+        <p>Nincs aktív időzítő</p>
+    </footer>
+
+</div>
+
+</body>
+</html>
